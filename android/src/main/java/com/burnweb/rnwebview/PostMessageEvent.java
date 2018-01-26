@@ -1,5 +1,7 @@
 package com.burnweb.rnwebview;
 
+import android.util.Log;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.Event;
@@ -32,6 +34,7 @@ public class PostMessageEvent extends Event<PostMessageEvent>{
     }
 
     private WritableMap serializeEventData(){
+        Log.d("ReactNativeJS", this.message );
         WritableMap eventData = Arguments.createMap();
         eventData.putString("data", this.message );
         return eventData;

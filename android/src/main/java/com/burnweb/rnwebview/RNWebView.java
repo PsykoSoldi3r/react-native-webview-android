@@ -58,6 +58,13 @@ class RNWebView extends WebView implements LifecycleEventListener {
         public void onPageFinished(WebView view, String url) {
             mEventDispatcher.dispatchEvent(new NavigationStateChangeEvent(getId(), SystemClock.nanoTime(), view.getTitle(), false, url, view.canGoBack(), view.canGoForward()));
 
+            view.loadUrl("javascript:(" +
+                    "window.originalPostMessage = window.postMessage," +
+                    "window.postMessage = function(data) {" +
+                    BRIDGE_NAME + ".postMessage(String(data));" +
+                "}" +
+            ")");
+
             if(RNWebView.this.getInjectedJavaScript() != null) {
                 view.loadUrl("javascript:(function() {\n" + RNWebView.this.getInjectedJavaScript() + ";\n})();");
             }
@@ -121,12 +128,6 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.setWebChromeClient(getCustomClient());
 
         this.addJavascriptInterface( new MessageBrige(), BRIDGE_NAME );
-        loadUrl("javascript:(" +
-                "window.originalPostMessage = window.postMessage," +
-                "window.postMessage = function(data) {" +
-                BRIDGE_NAME + ".postMessage(String(data));" +
-                "}" +
-                ")");
     }
 
     public void setCharset(String charset) {
