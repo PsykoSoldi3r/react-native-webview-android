@@ -35,6 +35,11 @@ var WebViewAndroid = createClass({
       this.props.onNavigationStateChange(event.nativeEvent);
     }
   },
+  _onPostMessage: function(event){
+    if( this.props.onMessage){
+      this.props.onMessage( event );
+    }
+  },
   goBack: function() {
     RCTUIManager.dispatchViewManagerCommand(
       this._getWebViewHandle(),
@@ -78,7 +83,7 @@ var WebViewAndroid = createClass({
     );
   },
   render: function() {
-    return <RNWebViewAndroid ref={WEBVIEW_REF} {...this.props} onNavigationStateChange={this._onNavigationStateChange} />;
+    return <RNWebViewAndroid ref={WEBVIEW_REF} {...this.props} onNavigationStateChange={this._onNavigationStateChange} onPostMessage={ this._onPostMessage } />;
   },
   _getWebViewHandle: function() {
     return RN.findNodeHandle(this.refs[WEBVIEW_REF]);

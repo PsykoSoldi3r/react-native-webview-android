@@ -5,7 +5,9 @@ import android.annotation.SuppressLint;
 import android.net.Uri;
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.util.Log;
 import android.webkit.GeolocationPermissions;
+import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -21,6 +23,8 @@ import com.facebook.react.uimanager.events.EventDispatcher;
 
 class RNWebView extends WebView implements LifecycleEventListener {
 
+    public static final String BRIDGE_NAME = "MESSAGE_BRIDGE";
+
     private final EventDispatcher mEventDispatcher;
     private final RNWebViewManager mViewManager;
 
@@ -28,6 +32,15 @@ class RNWebView extends WebView implements LifecycleEventListener {
     private String baseUrl = "file:///";
     private String injectedJavaScript = null;
     private boolean allowUrlRedirect = false;
+
+    protected class MessageBrige {
+
+        @JavascriptInterface
+        public void postMessage( String message ){
+            Log.d("ReactNativeJS", "Sending PostMessageEvent to Client");
+            mEventDispatcher.dispatchEvent(new PostMessageEvent(getId(), message));
+        }
+    }
 
     protected class EventWebClient extends WebViewClient {
         public boolean shouldOverrideUrlLoading(WebView view, String url){
@@ -106,6 +119,14 @@ class RNWebView extends WebView implements LifecycleEventListener {
 
         this.setWebViewClient(new EventWebClient());
         this.setWebChromeClient(getCustomClient());
+
+        this.addJavascriptInterface( new MessageBrige(), BRIDGE_NAME );
+        loadUrl("javascript:(" +
+                "window.originalPostMessage = window.postMessage," +
+                "window.postMessage = function(data) {" +
+                BRIDGE_NAME + ".postMessage(String(data));" +
+                "}" +
+                ")");
     }
 
     public void setCharset(String charset) {
@@ -152,6 +173,7 @@ class RNWebView extends WebView implements LifecycleEventListener {
         return mViewManager.getPackage().getModule();
     }
 
+
     @Override
     public void onHostResume() {
 
@@ -172,5 +194,4 @@ class RNWebView extends WebView implements LifecycleEventListener {
         this.loadDataWithBaseURL(this.getBaseUrl(), "<html></html>", "text/html", this.getCharset(), null);
         super.onDetachedFromWindow();
     }
-
 }
